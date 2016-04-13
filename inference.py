@@ -319,16 +319,8 @@ class ExactInference(InferenceModule):
         for oldPos, prob in self.beliefs.iteritems():
             newPosDist = self.getPositionDistribution(gameState, oldPos)
             for newPos, newProb in newPosDist.items():
-                if newPos in newBeliefs:
-                    newBeliefs[newPos].append(newProb)
-                else:
-                    newBeliefs[newPos] = [newProb]
-        
-        for pos, probs in newBeliefs.items():
-            total = sum(probs)
-            self.beliefs[pos] *= total
-
-        self.beliefs.normalize()
+                newBeliefs[newPos] += self.beliefs[oldPos]*newProb
+        self.beliefs = newBeliefs
     
     def getBeliefDistribution(self):
         return self.beliefs
