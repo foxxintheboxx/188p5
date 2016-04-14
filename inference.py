@@ -368,10 +368,7 @@ class ParticleFilter(InferenceModule):
         jailPos = self.getJailPosition()
         pacPos = gameState.getPacmanPosition()
         noisyDist = observation
-        beliefDist = self.getBeliefDistribution()
-        if noisyDist == None:
-            self.initializeUniformly(gameState)
-            return
+        beliefDist = DiscreteDistribution()
         particleCount = Counter(self.particles)
         for particle, count in particleCount.iteritems():
             obsProb = self.getObservationProb(noisyDist, pacPos, particle, jailPos)
