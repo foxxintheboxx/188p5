@@ -384,6 +384,13 @@ class ParticleFilter(InferenceModule):
         gameState.
         """
         "*** YOUR CODE HERE ***"
+        beliefDist = DiscreteDistribution()
+        particleCount = Counter(self.particles)
+        for particle, count in particleCount.iteritems():
+            newPosDist = self.getPositionDistribution(gameState, particle)
+            for newPos, newProb in newPosDist.items():
+                beliefDist[newPos] += count*newProb
+        self.particles = [beliefDist.sample() for i in range(self.numParticles)]
 
     def getBeliefDistribution(self):
         """
