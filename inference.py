@@ -17,7 +17,7 @@ import random
 import busters
 import game
 
-from collections import defaultdict
+from collections import defaultdict, Counter
 from util import manhattanDistance
 
 
@@ -365,8 +365,21 @@ class ParticleFilter(InferenceModule):
         be reinitialized by calling initializeUniformly. The total method of
         the DiscreteDistribution may be useful.
         """
-        "*** YOUR CODE HERE ***"
-
+        jailPos = self.getJailPosition()
+        pacPos = gameState.getPacmanPosition()
+        noisyDist = observation
+        if noisyDist == None:
+            self.initializeUniformly(gameState)
+            return
+        beliefDist = self.getBeliefDistribution()
+        particleCount = Counter(self.particles)
+        for particle, count in particleCount.iteritems():
+            obsProb = self.getObservationProb(noisyDist, pacPos, particle, jailPos)
+            beliefDist[particle] += obsProb * count
+        if beliefDist.total() == 0:
+            self.initializeUniformly(gameState)
+        else:
+            self.particles = [beliefDist.sample() for i in range(self.numParticles)]
 
     def elapseTime(self, gameState):
         """
@@ -382,14 +395,11 @@ class ParticleFilter(InferenceModule):
         essentially converts a list of particles into a belief distribution.
         """
         "*** YOUR CODE HERE ***"
-        self.particles
-        empty = DiscreteDistribution()
-        countOfParticle = defaultdict(int)
-        for particle in self.particles:
-            countOfParticle[particle] += 1
-        for particle in countOfParticle.keys():
-            empty[particle] = float(countOfParticle[particle]) / float(len(self.particles))
-        return empty
+        dist = DiscreteDistribution()
+        countOfParticle = Counter(self.particles)
+        for particle, count in dict(countOfParticle).iteritems():
+            dist[particle] = float(count) / len(self.particles)
+        return dist
 
 class JointParticleFilter(ParticleFilter):
     """
