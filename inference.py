@@ -493,13 +493,14 @@ class JointParticleFilter(ParticleFilter):
         """
         newParticles = []
         particleCount = Counter(self.particles)
-        for oldParticle, count in particleCount.iteritems():
+        #for oldParticle, count in particleCount.iteritems():
+        for oldParticle in self.particles:
             beliefDist = DiscreteDistribution()
             for i in range(self.numGhosts):
                 newPosDist = self.getPositionDistribution(gameState, oldParticle, i, self.ghostAgents[i])
                 for newPos, newProb in newPosDist.items():
-                    beliefDist[newPos] += newProb*count
-                newParticle = [beliefDist.sample() for i in range(len(oldParticle))]
+                    beliefDist[newPos] += newProb
+            newParticle = [beliefDist.sample() for i in range(len(oldParticle))]
             newParticles.append(tuple(newParticle))
         self.particles = newParticles
 
