@@ -433,10 +433,14 @@ class JointParticleFilter(ParticleFilter):
         product = itertools.product(self.legalPositions, self.legalPositions)
         product = [item for item in product]
         random.shuffle(product)
-        particlesPerPos = self.numParticles / len(product)
-        for pos in product:
-            for i in range(particlesPerPos):
-                self.particles.append(pos)
+        if len(product) < self.numParticles:
+            particlesPerPos =  self.numParticles / len(product)
+            for pos in product:
+                for i in range(int(particlesPerPos)):
+                    self.particles.append(pos)
+        else:
+            for i in range(self.numParticles):
+                self.particles.append(product[i])
 
     def addGhostAgent(self, agent):
         """
@@ -468,35 +472,34 @@ class JointParticleFilter(ParticleFilter):
         be reinitialized by calling initializeUniformly. The total method of
         the DiscreteDistribution may be useful.
         """
-        "*** YOUR CODE HERE ***"
         pacPos = gameState.getPacmanPosition()
         noisyDist = observation
         beliefDist = DiscreteDistribution()
         particleCount = Counter(self.particles)
-        for i in range(self.numGhosts):
-            jailPos = self.getJailPosition(i)
-            for particle, count in particleCount.iteritems():
-                obsProb1 = self.getObservationProb(noisyDist[0], pacPos, particle[0], jailPos)
-                obsProb2 = self.getObservationProb(noisyDist[1], pacPos, particle[1], jailPos)
-                beliefDist[particle] += obsProb1 * obsProb2 * count
+        for particle, count in particleCount.iteritems():
+            obsProb = 1
+            for i in range(self.numGhosts):
+                obsProb *= self.getObservationProb(noisyDist[i], pacPos, particle[i], self.getJailPosition(i))
+            beliefDist[particle] += obsProb * count
         if beliefDist.total() == 0:
             self.initializeUniformly(gameState)
         else:
             self.particles = [beliefDist.sample() for i in range(self.numParticles)]
-
+        
     def elapseTime(self, gameState):
         """
         Sample each particle's next state based on its current state and the
         gameState.
         """
         newParticles = []
-        for oldParticle in self.particles:
-            newParticle = list(oldParticle)  # A list of ghost positions
-
-            # now loop through and update each entry in newParticle...
-            "*** YOUR CODE HERE ***"
-
-            """*** END YOUR CODE HERE ***"""
+        particleCount = Counter(self.particles)
+        for oldParticle, count in particleCount.iteritems():
+            beliefDist = DiscreteDistribution()
+            for i in range(self.numGhosts):
+                newPosDist = self.getPositionDistribution(gameState, oldParticle, i, self.ghostAgents[i])
+                for newPos, newProb in newPosDist.items():
+                    beliefDist[newPos] += newProb*count
+                newParticle = [beliefDist.sample() for i in range(len(oldParticle))]
             newParticles.append(tuple(newParticle))
         self.particles = newParticles
 
