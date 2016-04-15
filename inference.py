@@ -386,11 +386,11 @@ class ParticleFilter(InferenceModule):
         "*** YOUR CODE HERE ***"
         beliefDist = DiscreteDistribution()
         particleCount = Counter(self.particles)
-        for particle, count in particleCount.iteritems():
+        newParticles = []
+        for particle in self.particles:
             newPosDist = self.getPositionDistribution(gameState, particle)
-            for newPos, newProb in newPosDist.items():
-                beliefDist[newPos] += count*newProb
-        self.particles = [beliefDist.sample() for i in range(self.numParticles)]
+            newParticles.append(newPosDist.sample())
+        self.particles = newParticles
 
     def getBeliefDistribution(self):
         """
@@ -476,6 +476,7 @@ class JointParticleFilter(ParticleFilter):
         noisyDist = observation
         beliefDist = DiscreteDistribution()
         particleCount = Counter(self.particles)
+        #print self.particles
         for particle, count in particleCount.iteritems():
             obsProb = 1
             for i in range(self.numGhosts):
@@ -485,22 +486,18 @@ class JointParticleFilter(ParticleFilter):
             self.initializeUniformly(gameState)
         else:
             self.particles = [beliefDist.sample() for i in range(self.numParticles)]
-        
+    
     def elapseTime(self, gameState):
         """
         Sample each particle's next state based on its current state and the
         gameState.
         """
         newParticles = []
-        particleCount = Counter(self.particles)
-        #for oldParticle, count in particleCount.iteritems():
         for oldParticle in self.particles:
-            beliefDist = DiscreteDistribution()
+            newParticle = [] 
             for i in range(self.numGhosts):
                 newPosDist = self.getPositionDistribution(gameState, oldParticle, i, self.ghostAgents[i])
-                for newPos, newProb in newPosDist.items():
-                    beliefDist[newPos] += newProb
-            newParticle = [beliefDist.sample() for i in range(len(oldParticle))]
+                newParticle.append(newPosDist.sample()) 
             newParticles.append(tuple(newParticle))
         self.particles = newParticles
 
