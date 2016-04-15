@@ -429,7 +429,14 @@ class JointParticleFilter(ParticleFilter):
         uniform prior.
         """
         self.particles = []
-        "*** YOUR CODE HERE ***"
+        self.beliefs = DiscreteDistribution()
+        product = itertools.product(self.legalPositions, self.legalPositions)
+        product = [item for item in product]
+        random.shuffle(product)
+        particlesPerPos = self.numParticles / len(product)
+        for pos in product:
+            for i in range(particlesPerPos):
+                self.particles.append(pos)
 
     def addGhostAgent(self, agent):
         """
